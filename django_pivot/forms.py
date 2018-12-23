@@ -1,28 +1,18 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django_pivot import settings
+from django_pivot import constants
 from django_pivot import utils
 
 AGGFUNC_CHOICES = [
     (f['name'], utils.verbose_name(f['verbose']))
     for f in settings.AGGFUNCS
 ]
-AGGR_FUNCS = (
-    ('mean', _("Mean")),
-    ('std', _("Standard deviation")),
-    ('min', _("Minimum")),
-    ('quantile:0.01', _("1st percentile")),
-    ('quantile:0.1', _("10th percentile")),
-    ('quantile:0.25', _("25th percentile")),
-    ('median', _("Median")),
-    ('quantile:0.75', _("75th percentile")),
-    ('quantile:0.90', _("90th percentile")),
-    ('quantile:0.95', _("95th percentile")),
-    ('quantile:0.99', _("99th percentile")),
-    ('max', _("Maximum")),
-    ('sum', _("Sum")),
-    ('count', _("Count")),
-)
+EXPORT_FORMAT_CHOICES = [
+    (k, v['verbose'])
+    for k, v in constants.EXPORT_FORMATS.items()
+    if k in settings.EXPORT_FORMATS
+]
 
 
 class PivotForm(forms.Form):
@@ -45,6 +35,10 @@ class PivotForm(forms.Form):
         label=_("Optional applied function"),
         choices=[(None, "-----")] + AGGFUNC_CHOICES,
         help_text=_("The function to apply after aggregation."))
+    format = forms.ChoiceField(
+        required=False,
+        label=_("Export format"),
+        choices=[(None, "-----")] + EXPORT_FORMAT_CHOICES)
 
     def __init__(self, values, rows, cols, *args, **kwargs):
         super().__init__(*args, **kwargs)

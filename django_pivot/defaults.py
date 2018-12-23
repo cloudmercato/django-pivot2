@@ -20,3 +20,6 @@ HTML = {
     'na_rep': '-',
     'classes': ()
 }
+
+EXPORT_FORMATS = ['csv', 'excel', 'hdf', 'html', 'latex', 'pickle', 'stata', 'string']
+EXPORT_OPTIONS = {}

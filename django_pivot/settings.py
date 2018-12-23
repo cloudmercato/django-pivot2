@@ -15,3 +15,6 @@ ROUND = get_setting('ROUND')
 VERBOSE_NAMES = get_setting('VERBOSE_NAMES')
 
 HTML = get_setting('HTML')
+
+EXPORT_FORMATS = get_setting('EXPORT_FORMATS')
+EXPORT_OPTIONS = get_setting('EXPORT_OPTIONS')

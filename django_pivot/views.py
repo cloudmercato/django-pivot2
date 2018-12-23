@@ -1,12 +1,17 @@
+import io
+from django.http import HttpResponse
+from django.utils.encoding import smart_str
 from django_pivot import forms
 from django_pivot import utils
 from django_pivot import settings
+from django_pivot import constants
 
 
 class PivotView:
     pivot_form = forms.PivotForm
     round = settings.ROUND
     html_params = settings.HTML
+    export_options = settings.EXPORT_OPTIONS
 
     def get_pivot_table_kwargs(self):
         kwargs = {
@@ -52,11 +57,35 @@ class PivotView:
         pivot_form = self.get_pivot_form()
         if pivot_form.is_valid():
             pivot = self.get_pivot_table()
-            data = pivot.to_html(**self.html_params)
+            format_id = self.request.GET.get('pivot-format')
+            if format_id:
+                format_ = constants.EXPORT_FORMATS[format_id]
+                buf = io.StringIO() if format_['ctype'].startswith('text/') else io.BytesIO()
+                getattr(pivot, 'to_%s' % format_id)(buf, **self.export_options.get(format_id, {}))
+                buf.seek(0)
+                data = buf
+                context['format'] = format_
+            else:
+                data = pivot.to_html(**self.html_params)
         else:
-            data = pivot = None
+            data = pivot_form = None
         context.update({
             'data': data,
             'pivot_form': pivot_form,
         })
         return context
+
+    def get(self, *args, **kwargs):
+        response = super().get(*args, **kwargs)
+        if self.request.GET.get('pivot-format'):
+            filename = '%s.%s' % (
+                self.model._meta.model_name,
+                response.context_data['format']['ext']
+            )
+            content_type = response.context_data['format']['ctype']
+            response = HttpResponse(response.context_data['data'], content_type=content_type)
+            response['Content-Disposition'] = 'attachment; filename=%s' % (
+                smart_str(filename))
+            response.streaming = True
+
+        return response
