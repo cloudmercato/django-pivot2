@@ -1,9 +1,10 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django_pivot import settings
+from django_pivot import utils
 
 AGGFUNC_CHOICES = [
-    (f['name'], f['verbose'])
+    (f['name'], utils.verbose_name(f['verbose']))
     for f in settings.AGGFUNCS
 ]
 AGGR_FUNCS = (
@@ -47,6 +48,6 @@ class PivotForm(forms.Form):
 
     def __init__(self, values, rows, cols, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['values'].choices = [(i, i) for i in values]
-        self.fields['rows'].choices = [(i, i) for i in rows]
-        self.fields['cols'].choices = [(i, i) for i in cols]
+        self.fields['values'].choices = [(i, utils.verbose_name(i)) for i in values]
+        self.fields['rows'].choices = [(i, utils.verbose_name(i)) for i in rows]
+        self.fields['cols'].choices = [(i, utils.verbose_name(i)) for i in cols]

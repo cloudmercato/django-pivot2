@@ -5,6 +5,8 @@ from django_pivot import settings
 
 class PivotView:
     pivot_form = forms.PivotForm
+    round = settings.ROUND
+    html_params = settings.HTML
 
     def get_pivot_table_kwargs(self):
         kwargs = {
@@ -30,7 +32,10 @@ class PivotView:
             first_col = pivot.columns[0][0] if isinstance(pivot.columns[0], tuple) else pivot.columns[0]
             name = '%s %s' % (apply_, first_col)
             pivot = pivot.aggregate(apply_, axis='columns').to_frame(name=name)
-        pivot = pivot.round(3)
+        if self.round is not None:
+            pivot = pivot.round(self.round)
+        pivot.rename(utils.verbose_name, axis='index', inplace=True)
+        pivot.rename(utils.verbose_name, axis='columns', inplace=True)
         return pivot
 
     def get_pivot_form(self):
@@ -47,11 +52,7 @@ class PivotView:
         pivot_form = self.get_pivot_form()
         if pivot_form.is_valid():
             pivot = self.get_pivot_table()
-            data = pivot.to_html(
-                border=settings.HTML_BORDER,
-                na_rep=settings.HTML_NA_REP,
-                classes=settings.HTML_CLASSES,
-            )
+            data = pivot.to_html(**self.html_params)
         else:
             data = pivot = None
         context.update({

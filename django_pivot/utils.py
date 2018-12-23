@@ -1,4 +1,5 @@
 import importlib
+from django.utils.translation import ugettext as _
 from django_pivot import settings
 
 
@@ -11,3 +12,8 @@ def get_aggr_func(func_name):
             func = getattr(module, name)
             return func
     return func_name
+
+
+def verbose_name(name):
+    verbose = settings.VERBOSE_NAMES.get(name)
+    return _(verbose) if verbose else name

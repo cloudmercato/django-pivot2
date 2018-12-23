@@ -10,6 +10,13 @@ AGGFUNCS = [
     {'name': 'sum', 'verbose': _("sum")},
     {'name': 'count', 'verbose': _("count")},
 ]
-HTML_BORDER = 1
-HTML_NA_REP = '-'
-HTML_CLASSES = ()
+
+ROUND = None
+
+VERBOSE_NAMES = {}
+
+HTML = {
+    'border': 1,
+    'na_rep': '-',
+    'classes': ()
+}
