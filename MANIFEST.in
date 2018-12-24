@@ -1,0 +1,5 @@
+recursive-include django_pivot * *.css *.html *.xml
+include requirements*.txt
+
+global-exclude *.pyc *.pyo
+global-exclude .git
