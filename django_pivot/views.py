@@ -1,6 +1,8 @@
 import io
+
 from django.http import HttpResponse
 from django.utils.encoding import smart_str
+
 from django_pivot import forms
 from django_pivot import utils
 from django_pivot import settings
@@ -68,7 +70,7 @@ class PivotView:
             else:
                 data = pivot.to_html(**self.html_params)
         else:
-            data = pivot_form = None
+            data = None
         context.update({
             'data': data,
             'pivot_form': pivot_form,
@@ -86,6 +88,5 @@ class PivotView:
             response = HttpResponse(response.context_data['data'], content_type=content_type)
             response['Content-Disposition'] = 'attachment; filename=%s' % (
                 smart_str(filename))
-            response.streaming = True
 
         return response
