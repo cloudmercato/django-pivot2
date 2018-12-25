@@ -57,6 +57,7 @@ class PivotForm(forms.Form):
                     for f in self.cleaned_data['aggr']
                 ]
                 for v in self.cleaned_data['values']
-            }
+            },
+            coerce_float=True,
         )
         return pivot

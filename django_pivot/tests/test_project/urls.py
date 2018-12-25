@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path
+from graphene_django.views import GraphQLView
 from django_pivot.tests.test_project.testapp import views
 
 urlpatterns = [
@@ -8,4 +9,5 @@ urlpatterns = [
     path('provider/filter/', views.ProviderFilterView.as_view(), name='provider-filter'),
     path('meteo/', views.MeteoListView.as_view(), name='meteo-list'),
     path('meteo/filter/', views.MeteoFilterView.as_view(), name='meteo-filter'),
+    path('graphql/', GraphQLView.as_view(graphiql=True), name="graphql"),
 ]

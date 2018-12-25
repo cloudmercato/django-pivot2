@@ -76,3 +76,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 STATIC_URL = '/static/'
+
+GRAPHENE = {
+    'SCHEMA': 'django_pivot.tests.test_project.schema.schema',
+}

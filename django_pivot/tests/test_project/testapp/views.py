@@ -11,21 +11,20 @@ class BasePivotView(views.PivotView):
     template_name = 'pivot.html'
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        qs = qs.pivot_annontate()
+        qs = super().get_queryset().all()
         return qs
 
 
 class BaseProviderView(BasePivotView):
     model = models.Provider
-    values_choices = ['logs_count']
-    rows_choices = cols_choices = ['name', 'date', 'city']
+    values_choices = model.pivot_opts['values']
+    rows_choices = cols_choices = model.pivot_opts['rows']
 
 
 class BaseMeteoView(BasePivotView):
     model = models.Meteo
-    values_choices = ['date', 'city', 'temperature', 'humidity']
-    rows_choices = cols_choices = ['provider_name', 'score', 'date', 'city']
+    values_choices = model.pivot_opts['values']
+    rows_choices = cols_choices = model.pivot_opts['rows']
 
 
 class ProviderListView(BaseProviderView, ListView):

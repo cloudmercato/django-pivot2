@@ -15,9 +15,6 @@ class PivotView:
     html_params = settings.HTML
     export_options = settings.EXPORT_OPTIONS
 
-    def get_pivot_table_kwargs(self):
-        return kwargs
-
     def get_pivot_table(self):
         qs = self.filterset.qs if hasattr(self, 'filterset') else self.get_queryset()
         form = self.get_pivot_form()
