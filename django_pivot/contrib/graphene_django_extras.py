@@ -49,15 +49,19 @@ class PivotField(fields.DjangoFilterListField):
     def get_queryset(self, manager):
         return manager.all()
 
+    def _get_filter_kwargs(self, kwargs, filtering_args):
+        filter_kwargs = {
+            k: v for k, v in kwargs.items() if k in filtering_args
+        }
+        return filter_kwargs
+
     def list_resolver(self, manager, filterset_class, filtering_args, root, info,
                       values, rows, cols, aggfuncs,
                       values_choices, rows_choices, cols_choices, round,
                       **kwargs):
         qs = self.get_queryset(manager)
 
-        filter_kwargs = {
-            k: v for k, v in kwargs.items() if k in filtering_args
-        }
+        filter_kwargs = self._get_filter_kwargs(kwargs, filtering_args)
         qs = filterset_class(data=filter_kwargs, queryset=qs, request=info.context).qs
         pivot_input = {
             'values': values,
