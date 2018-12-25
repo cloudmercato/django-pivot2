@@ -16,23 +16,14 @@ class PivotView:
     export_options = settings.EXPORT_OPTIONS
 
     def get_pivot_table_kwargs(self):
-        kwargs = {
-            'values': self.request.GET.getlist('pivot-values'),
-            'rows': self.request.GET.getlist('pivot-rows'),
-            'cols': self.request.GET.getlist('pivot-cols'),
-            'aggfunc': {
-                v: [
-                    utils.get_aggr_func(f)
-                    for f in self.request.GET.getlist('pivot-aggr')
-                ]
-                for v in self.request.GET.getlist('pivot-values')
-            }
-        }
         return kwargs
 
     def get_pivot_table(self):
         qs = self.filterset.qs if hasattr(self, 'filterset') else self.get_queryset()
-        pivot = qs.to_pivot_table(**self.get_pivot_table_kwargs())
+        form = self.get_pivot_form()
+        if not form.is_valid():
+            return None
+        pivot = form.get_pivot_table(qs)
         apply_ = self.request.GET.get('pivot-apply')
         # Apply is made only on 1st column
         if apply_:

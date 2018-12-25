@@ -45,3 +45,18 @@ class PivotForm(forms.Form):
         self.fields['values'].choices = [(i, utils.verbose_name(i)) for i in values]
         self.fields['rows'].choices = [(i, utils.verbose_name(i)) for i in rows]
         self.fields['cols'].choices = [(i, utils.verbose_name(i)) for i in cols]
+
+    def get_pivot_table(self, queryset):
+        pivot = queryset.to_pivot_table(
+            values=self.cleaned_data['values'],
+            rows=self.cleaned_data['rows'],
+            cols=self.cleaned_data['cols'],
+            aggfunc={
+                v: [
+                    utils.get_aggr_func(f)
+                    for f in self.cleaned_data['aggr']
+                ]
+                for v in self.cleaned_data['values']
+            }
+        )
+        return pivot

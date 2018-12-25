@@ -10,7 +10,7 @@ def read_file(name):
 keywords = ['django', 'web', 'data', 'html']
 
 setup(
-    name='django-pivot',
+    name='django-pivot2',
     version=django_pivot.__version__,
     description=django_pivot.__doc__,
     long_description=read_file('README.rst'),
