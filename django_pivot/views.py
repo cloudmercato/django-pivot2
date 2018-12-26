@@ -84,6 +84,6 @@ class PivotView:
     def get(self, *args, **kwargs):
         response = super().get(*args, **kwargs)
         valid_form = self.pivot_form.is_valid()
-        if valid_form and self.pivot_form.cleaned_data['format']:
+        if valid_form and self.pivot_form.cleaned_data['format'] and self.pivot_table is not None:
             return self._get_file()
         return response
