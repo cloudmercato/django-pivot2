@@ -46,6 +46,22 @@ class PivotForm(forms.Form):
         self.fields['rows'].choices = [(i, utils.verbose_name(i)) for i in rows]
         self.fields['cols'].choices = [(i, utils.verbose_name(i)) for i in cols]
 
+    def clean_format(self):
+        format_id = self.cleaned_data['format']
+        if format_id:
+            format_ = constants.EXPORT_FORMATS[format_id]
+            format_['id'] = format_id
+            return format_
+
+    def clean(self):
+        cleaned_data = super().clean()
+        intsersec = set(cleaned_data.get('rows', [])) & set(cleaned_data.get('cols', []))
+        if intsersec:
+            msg = _("You cannot put attributes in rows and columns at the same time:"
+                    " %s") % ', '.join([str(r) for r in intsersec])
+            raise forms.ValidationError(msg)
+        return cleaned_data
+
     def get_pivot_table(self, queryset):
         pivot = queryset.to_pivot_table(
             values=self.cleaned_data['values'],

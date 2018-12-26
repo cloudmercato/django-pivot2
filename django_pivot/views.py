@@ -1,80 +1,89 @@
-import io
-
 from django.http import HttpResponse
 from django.utils.encoding import smart_str
+from django.utils.safestring import mark_safe
+
+from pandas.core.base import DataError
 
 from django_pivot import forms
 from django_pivot import utils
 from django_pivot import settings
-from django_pivot import constants
 
 
 class PivotView:
-    pivot_form = forms.PivotForm
+    pivot_form_class = forms.PivotForm
     round = settings.ROUND
     html_params = settings.HTML
     export_options = settings.EXPORT_OPTIONS
 
-    def get_pivot_table(self):
-        qs = self.filterset.qs if hasattr(self, 'filterset') else self.get_queryset()
-        form = self.get_pivot_form()
-        if not form.is_valid():
-            return None
-        pivot = form.get_pivot_table(qs)
-        apply_ = self.request.GET.get('pivot-apply')
-        # Apply is made only on 1st column
-        if apply_:
-            first_col = pivot.columns[0][0] if isinstance(pivot.columns[0], tuple) else pivot.columns[0]
-            name = '%s %s' % (apply_, first_col)
-            pivot = pivot.aggregate(apply_, axis='columns').to_frame(name=name)
-        if self.round is not None:
-            pivot = pivot.round(self.round)
-        pivot.rename(utils.verbose_name, axis='index', inplace=True)
-        pivot.rename(utils.verbose_name, axis='columns', inplace=True)
-        return pivot
+    @property
+    def pivot_table(self):
+        if not hasattr(self, '_pivot_table'):
+            # Get qs from django-filters or classic
+            if hasattr(self, 'filterset'):
+                qs = self.filterset.qs
+            else:
+                qs = self.get_queryset()
+            try:
+                pivot = self.pivot_form.get_pivot_table(qs)
+            except DataError:
+                if not qs.exists():
+                    return
+                raise
+            apply_ = self.request.GET.get('pivot-apply')
+            # Apply is made only on 1st column
+            if apply_:
+                first_col = pivot.columns[0][0] if isinstance(pivot.columns[0], tuple) else pivot.columns[0]
+                name = '%s %s' % (apply_, first_col)
+                pivot = pivot.aggregate(apply_, axis='columns').to_frame(name=name)
+            if self.round is not None:
+                pivot = pivot.round(self.round)
+            pivot.rename(utils.verbose_name, axis='index', inplace=True)
+            pivot.rename(utils.verbose_name, axis='columns', inplace=True)
+            self._pivot_table = pivot
+        return self._pivot_table
 
-    def get_pivot_form(self):
-        pivot_form = self.pivot_form(
-            values=self.values_choices,
-            rows=self.rows_choices,
-            cols=self.cols_choices,
-            prefix='pivot',
-            data=self.request.GET)
-        return pivot_form
+    @property
+    def pivot_form(self):
+        if not hasattr(self, '_pivot_form'):
+            self._pivot_form = self.pivot_form_class(
+                values=self.values_choices,
+                rows=self.rows_choices,
+                cols=self.cols_choices,
+                prefix='pivot',
+                data=self.request.GET)
+        return self._pivot_form
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        pivot_form = self.get_pivot_form()
-        if pivot_form.is_valid():
-            pivot = self.get_pivot_table()
-            format_id = self.request.GET.get('pivot-format')
-            if format_id:
-                format_ = constants.EXPORT_FORMATS[format_id]
-                buf = io.StringIO() if format_['ctype'].startswith('text/') else io.BytesIO()
-                getattr(pivot, 'to_%s' % format_id)(buf, **self.export_options.get(format_id, {}))
-                buf.seek(0)
-                data = buf
-                context['format'] = format_
-            else:
-                data = pivot.to_html(**self.html_params)
+        if self.pivot_form.is_valid() and self.pivot_table is not None:
+            data = mark_safe(self.pivot_table.to_html(**self.html_params))
         else:
             data = None
         context.update({
             'data': data,
-            'pivot_form': pivot_form,
+            'pivot_form': self.pivot_form,
         })
         return context
 
+    def _get_file(self):
+        format_ = self.pivot_form.cleaned_data['format']
+        filename = '%s.%s' % (self.model._meta.model_name, format_['ext'])
+        data = utils.get_formatted_data(
+            self.pivot_table,
+            format_['id'],
+            self.export_options.get(format_['id'], {})
+        )
+        response = HttpResponse(
+            data,
+            content_type=format_['ctype'],
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s' % (
+            smart_str(filename))
+        return response
+
     def get(self, *args, **kwargs):
         response = super().get(*args, **kwargs)
-        if self.request.GET.get('pivot-format'):
-            filename = '%s.%s' % (
-                self.model._meta.model_name,
-                response.context_data['format']['ext']
-            )
-            content_type = response.context_data['format']['ctype']
-            response = HttpResponse(response.context_data['data'], content_type=content_type)
-            response['Content-Disposition'] = 'attachment; filename=%s' % (
-                smart_str(filename))
-
+        valid_form = self.pivot_form.is_valid()
+        if valid_form and self.pivot_form.cleaned_data['format']:
+            return self._get_file()
         return response
