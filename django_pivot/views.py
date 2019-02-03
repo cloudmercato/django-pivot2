@@ -16,6 +16,14 @@ class PivotView:
     export_options = settings.EXPORT_OPTIONS
 
     @property
+    def pivot_fieldnames(self):
+        if not hasattr(self, '_pivot_fieldnames'):
+            self._pivot_fieldnames = list(set(
+                self.values_choices + self.rows_choices + self.cols_choices
+            ))
+        return self._pivot_fieldnames
+
+    @property
     def pivot_table(self):
         if not hasattr(self, '_pivot_table'):
             # Get qs from django-filters or classic
@@ -37,8 +45,7 @@ class PivotView:
                 pivot = pivot.aggregate(apply_, axis='columns').to_frame(name=name)
             if self.round is not None:
                 pivot = pivot.round(self.round)
-            pivot.rename(utils.verbose_name, axis='index', inplace=True)
-            pivot.rename(utils.verbose_name, axis='columns', inplace=True)
+            pivot = utils.verbose_dataframe(pivot)
             self._pivot_table = pivot
         return self._pivot_table
 
@@ -49,6 +56,7 @@ class PivotView:
                 values=self.values_choices,
                 rows=self.rows_choices,
                 cols=self.cols_choices,
+                fieldnames=self.pivot_fieldnames,
                 prefix='pivot',
                 data=self.request.GET)
         return self._pivot_form

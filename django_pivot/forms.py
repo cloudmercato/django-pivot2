@@ -40,11 +40,14 @@ class PivotForm(forms.Form):
         label=_("Export format"),
         choices=[(None, "-----")] + EXPORT_FORMAT_CHOICES)
 
-    def __init__(self, values, rows, cols, *args, **kwargs):
+    fieldnames = None
+
+    def __init__(self, values, rows, cols, fieldnames=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['values'].choices = [(i, utils.verbose_name(i)) for i in values]
         self.fields['rows'].choices = [(i, utils.verbose_name(i)) for i in rows]
         self.fields['cols'].choices = [(i, utils.verbose_name(i)) for i in cols]
+        self.fieldnames = fieldnames or self.fieldnames or ()
 
     def clean_format(self):
         format_id = self.cleaned_data['format']
@@ -64,6 +67,7 @@ class PivotForm(forms.Form):
 
     def get_pivot_table(self, queryset):
         pivot = queryset.to_pivot_table(
+            fieldnames=self.fieldnames,
             values=self.cleaned_data['values'],
             rows=self.cleaned_data['rows'],
             cols=self.cleaned_data['cols'],
