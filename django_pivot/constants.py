@@ -2,7 +2,7 @@ from django.utils.translation import ugettext_lazy as _
 
 EXPORT_FORMATS = {
     'csv': {'verbose': _("CSV"), 'ctype': 'text/csv', 'ext': 'csv'},
-    'excel': {'verbose': _("Excel"), 'ctype': 'application/vnd.ms-excel', 'ext': 'xlsx'},
+    'excel': {'verbose': _("Excel"), 'ctype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'ext': 'xlsx'},
     'hdf': {'verbose': _("HDF"), 'ctype': 'application/octet-stream', 'ext': 'hdf'},
     # 'gbq': {'verbose': _("Google Big Query"), 'ctype': '', 'ext': ''},
     'html': {'verbose': _("HTML"), 'ctype': 'text/html', 'ext': 'html'},
