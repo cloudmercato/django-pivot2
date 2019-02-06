@@ -66,8 +66,11 @@ class PivotForm(forms.Form):
         return cleaned_data
 
     def get_pivot_table(self, queryset):
+        fieldnames = list(set(self.cleaned_data['values']) |
+                          set(self.cleaned_data['rows']) |
+                          set(self.cleaned_data['cols']))
         pivot = queryset.to_pivot_table(
-            fieldnames=self.fieldnames,
+            fieldnames=fieldnames,
             values=self.cleaned_data['values'],
             rows=self.cleaned_data['rows'],
             cols=self.cleaned_data['cols'],

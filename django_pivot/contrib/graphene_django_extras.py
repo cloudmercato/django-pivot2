@@ -6,6 +6,7 @@ from graphene_django_extras import fields
 
 from django_pivot import settings
 from django_pivot.forms import PivotForm
+from django_pivot import utils
 
 AGGFUNCS = [f['name'] for f in settings.AGGFUNCS]
 
@@ -83,6 +84,7 @@ class PivotField(fields.DjangoFilterListField):
         pivot = pivot_form.get_pivot_table(qs)
         if round is not None:
             pivot = pivot.round(round)
+        pivot = utils.verbose_dataframe(pivot)
         csv_data = pivot.to_csv()
         return [
             r.split(',')
