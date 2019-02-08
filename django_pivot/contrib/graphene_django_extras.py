@@ -1,8 +1,11 @@
 from functools import partial
 
+from pandas.core.base import DataError
+
 from graphql import GraphQLError
 import graphene
 from graphene_django_extras import fields
+from django.utils.translation import ugettext_lazy as _
 
 from django_pivot import settings
 from django_pivot.forms import PivotForm
@@ -81,10 +84,18 @@ class PivotField(fields.DjangoFilterListField):
             msg = "%s: %s" % (key, values[0])
             raise GraphQLError(msg)
 
-        pivot = pivot_form.get_pivot_table(qs)
+        try:
+            pivot = pivot_form.get_pivot_table(qs)
+        except DataError as err:
+            if err.args[0] == 'No numeric types to aggregate':
+                msg = _("One or several fields don't have values to aggregate.")
+                raise GraphQLError(msg)
+            raise
         if round is not None:
             pivot = pivot.round(round)
         pivot = utils.verbose_dataframe(pivot)
+        if pivot.empty:
+            return []
         csv_data = pivot.to_csv()
         return [
             r.split(',')
