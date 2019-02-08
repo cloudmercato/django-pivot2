@@ -32,7 +32,7 @@ def verbose_dataframe(df):
     if isinstance(df.columns, MultiIndex):
         df.columns.names = [verbose_name(i) for i in df.columns.names]
     else:
-        df.column.name = verbose_name(df.column.name)
+        df.columns.name = verbose_name(df.columns.name)
     return df
 
 

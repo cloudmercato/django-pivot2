@@ -1,6 +1,7 @@
 from django.http import HttpResponse
 from django.utils.encoding import smart_str
 from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
 
 from pandas.core.base import DataError
 
@@ -33,7 +34,7 @@ class PivotView:
                 qs = self.get_queryset()
             try:
                 pivot = self.pivot_form.get_pivot_table(qs)
-            except DataError:
+            except DataError as err:
                 if not qs.exists():
                     return
                 raise
@@ -63,10 +64,19 @@ class PivotView:
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.pivot_form.is_valid() and self.pivot_table is not None:
-            data = mark_safe(self.pivot_table.to_html(**self.html_params))
-        else:
-            data = None
+        try:
+            if self.pivot_form.is_valid() and self.pivot_table is not None:
+                data = mark_safe(self.pivot_table.to_html(**self.html_params))
+            else:
+                data = None
+        except DataError as err:
+            if err.args[0] == 'No numeric types to aggregate':
+                self.pivot_form.errors['__all__'] = [
+                    _("One or several fields don't have values to aggregate.")
+                ]
+                data = None
+            else:
+                raise
         context.update({
             'data': data,
             'pivot_form': self.pivot_form,

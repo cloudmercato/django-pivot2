@@ -20,6 +20,7 @@ class PivotForm(forms.Form):
         label=_("Value(s)"),
         help_text=_("Field(s) to use to calculate."))
     rows = forms.MultipleChoiceField(
+        required=False,
         label=_("Row(s)"),
         help_text=_("List of field names to group on."))
     cols = forms.MultipleChoiceField(
@@ -58,11 +59,19 @@ class PivotForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        intsersec = set(cleaned_data.get('rows', [])) & set(cleaned_data.get('cols', []))
+        rows = cleaned_data.get('rows', [])
+        cols = cleaned_data.get('cols', [])
+        if not rows and not cols:
+            raise forms.ValidationError(
+                _("You must at least choose a row or a column."),
+                code='invalid'
+            )
+        intsersec = set(rows) & set(cols)
         if intsersec:
+            fieldnames = ', '.join([utils.verbose_name(str(r)) for r in intsersec])
             msg = _("You cannot put attributes in rows and columns at the same time:"
-                    " %s") % ', '.join([str(r) for r in intsersec])
-            raise forms.ValidationError(msg)
+                    " %s") % fieldnames
+            raise forms.ValidationError(msg, code='invalid')
         return cleaned_data
 
     def get_pivot_table(self, queryset):
