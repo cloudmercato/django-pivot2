@@ -23,16 +23,12 @@ def verbose_name(name):
 
 
 def verbose_dataframe(df):
-    df.rename(verbose_name, axis='index', inplace=True)
-    df.rename(verbose_name, axis='columns', inplace=True)
-    if isinstance(df.index, MultiIndex):
-        df.index.names = [verbose_name(i) for i in df.index.names]
-    else:
-        df.index.name = verbose_name(df.index.name)
-    if isinstance(df.columns, MultiIndex):
-        df.columns.names = [verbose_name(i) for i in df.columns.names]
-    else:
-        df.columns.name = verbose_name(df.columns.name)
+    for index, axe in enumerate(df.axes):
+        df.rename(mapper=verbose_name, axis=index, inplace=True)
+        if isinstance(df.axes[index], MultiIndex):
+            df.axes[index].names = [verbose_name(i) for i in df.axes[index].names]
+        else:
+            df.axes[index].name = verbose_name(df.axes[index].name)
     return df
 
 

@@ -92,4 +92,6 @@ class PivotForm(forms.Form):
             },
             coerce_float=True,
         )
+        if hasattr(pivot, 'to_frame'):
+            pivot = pivot.to_frame()
         return pivot
