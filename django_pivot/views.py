@@ -10,11 +10,9 @@ from django_pivot import utils
 from django_pivot import settings
 
 
-class PivotView:
+class PivotFormViewMixin:
     pivot_form_class = forms.PivotForm
     round = settings.ROUND
-    html_params = settings.HTML
-    export_options = settings.EXPORT_OPTIONS
 
     @property
     def pivot_fieldnames(self):
@@ -50,17 +48,34 @@ class PivotView:
             self._pivot_table = pivot
         return self._pivot_table
 
+    def get_pivot_form(self, values, rows, cols, fieldnames, prefix, data, **kwargs):
+        return self.pivot_form_class(
+            values=values,
+            rows=rows,
+            cols=cols,
+            fieldnames=fieldnames,
+            prefix=prefix,
+            data=data,
+            **kwargs
+        )
+
     @property
     def pivot_form(self):
         if not hasattr(self, '_pivot_form'):
-            self._pivot_form = self.pivot_form_class(
+            self._pivot_form = self.get_pivot_form(
                 values=self.values_choices,
                 rows=self.rows_choices,
                 cols=self.cols_choices,
                 fieldnames=self.pivot_fieldnames,
                 prefix='pivot',
-                data=self.request.GET)
+                data=self.request.GET
+            )
         return self._pivot_form
+
+
+class PivotView(PivotFormViewMixin):
+    html_params = settings.HTML
+    export_options = settings.EXPORT_OPTIONS
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
