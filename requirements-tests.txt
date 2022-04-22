@@ -1,2 +1,8 @@
+Django<4
+djangorestframewor
+graphene-django
+graphene_django_extras
+django-filter
+
 coverage
-factoryboy
+factory_boy

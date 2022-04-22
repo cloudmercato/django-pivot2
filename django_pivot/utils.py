@@ -1,12 +1,20 @@
 import io
 import importlib
+import numpy as np
 from django.utils.translation import ugettext as _
 from pandas.core.indexes.multi import MultiIndex
 from django_pivot import settings
 from django_pivot import constants
 
+AGGFUNCS = {
+    'bool': np.any,
+    'all': np.all,
+}
+
 
 def get_aggr_func(func_name):
+    if func_name in AGGFUNCS:
+        return AGGFUNCS[func_name]
     for func in settings.AGGFUNCS:
         if func_name == func['name'] and 'path' in func:
             module_path = '.'.join(func['path'].split('.')[:-1])

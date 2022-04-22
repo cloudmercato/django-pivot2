@@ -9,6 +9,7 @@ AGGFUNCS = [
     {'name': 'max', 'verbose': _("maximum")},
     {'name': 'sum', 'verbose': _("sum")},
     {'name': 'count', 'verbose': _("count")},
+    {'name': 'bool', 'verbose': _("bool")},
 ]
 
 ROUND = None
