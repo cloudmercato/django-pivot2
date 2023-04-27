@@ -3,7 +3,10 @@ from django.utils.encoding import smart_str
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from pandas.core.base import DataError
+try:
+    from pandas.errors import DataError
+except ImportError:
+    from pandas.core.base import DataError
 
 from django_pivot import forms
 from django_pivot import utils
