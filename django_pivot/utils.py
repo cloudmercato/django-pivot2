@@ -1,7 +1,7 @@
 import io
 import importlib
 import numpy as np
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from pandas.core.indexes.multi import MultiIndex
 from django_pivot import settings
 from django_pivot import constants
